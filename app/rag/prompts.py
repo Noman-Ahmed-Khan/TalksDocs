@@ -1,4 +1,4 @@
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 
 RAG_PROMPT_TEMPLATE = """You are an AI assistant specialized in document intelligence.
 Your task is to answer the user's question based ONLY on the provided context.

@@ -2,11 +2,14 @@ fastapi
 uvicorn
 python-multipart
 python-jose[cryptography]
-passlib[bcrypt]
+bcrypt==4.0.1
 sqlalchemy
 psycopg2-binary
 pydantic-settings
+pydantic[email]
 langchain
+langchain-community
+langchain-classic
 langchain-google-genai
 pinecone-client
 pypdf
@@ -17,3 +20,6 @@ beautifulsoup4
 markdown
 python-dotenv
 email-validator
+jinja2 
+passlib 
+aiosmtplib

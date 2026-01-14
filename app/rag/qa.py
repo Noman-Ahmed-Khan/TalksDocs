@@ -1,6 +1,7 @@
 from typing import List, Dict, Any
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.chains import LLMChain
+from langchain_classic.chains import LLMChain
+
 from .vectorstore import get_vectorstore
 from .prompts import RAG_PROMPT
 from app.settings import settings
