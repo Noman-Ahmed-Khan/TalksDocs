@@ -156,5 +156,3 @@ cython_debug/
 uploads/
 *.db
 *.db-journal
-
-.env
