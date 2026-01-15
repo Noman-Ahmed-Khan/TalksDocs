@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     REQUIRE_EMAIL_VERIFICATION: bool = True
     
     # PostgreSQL Database
-    DATABASE_URL: str = "postgresql://livingdocs_user:adminNoman098@localhost:5432/livingdocs"
+    DATABASE_URL: Optional[str] = None
     
     # Database Pool Settings (for production)
     DB_POOL_SIZE: int = 5
@@ -38,8 +38,8 @@ class Settings(BaseSettings):
     # Email Settings
     SMTP_HOST: str = "smtp.gmail.com"
     SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
     SMTP_FROM_EMAIL: str = "noreply@livingdocs.com"
     SMTP_FROM_NAME: str = "Living Docs"
     SMTP_TLS: bool = True
@@ -49,12 +49,12 @@ class Settings(BaseSettings):
     EMAIL_TEMPLATES_DIR: str = "app/templates/email"
     
     # Google Gemini
-    GOOGLE_API_KEY: str = ""
+    GOOGLE_API_KEY: Optional[str] = None
     GEMINI_MODEL: str = "gemini-1.5-flash"
     GEMINI_EMBEDDING_MODEL: str = "models/embedding-001"
     
     # Pinecone
-    PINECONE_API_KEY: str = ""
+    PINECONE_API_KEY: Optional[str] = None
     PINECONE_INDEX_NAME: str = ""
     PINECONE_ENVIRONMENT: str = "gcp-starter"
     

@@ -9,7 +9,7 @@ from app.schemas import document as document_schema
 from app.dependencies import get_current_user
 from app.settings import settings
 from app.rag.loaders import DocumentLoader
-from app.rag.chunking import Chunker
+from app.rag.chunker import Chunker
 from app.rag.vectorstore import get_vectorstore
 
 router = APIRouter()

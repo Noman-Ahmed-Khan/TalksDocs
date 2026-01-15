@@ -24,3 +24,5 @@ jinja2
 passlib 
 aiosmtplib
 alembic 
+pytest
+httpx

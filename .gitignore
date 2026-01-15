@@ -159,3 +159,10 @@ uploads/
 
 .zencoder
 .zenflow
+
+
+# will remove when properly configured docker setup
+.dockerignore
+docker-compose.yml
+docker-helper.sh
+Dockerfile
