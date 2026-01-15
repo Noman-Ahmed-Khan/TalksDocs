@@ -16,6 +16,7 @@ class User(Base):
     
     # Account Status
     is_active = Column(Boolean, default=True, nullable=False)
+    deactivated_at = Column(DateTime(timezone=True), nullable=True)
     is_verified = Column(Boolean, default=False, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
     

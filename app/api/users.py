@@ -57,9 +57,25 @@ async def deactivate_account(
     crud.revoke_all_user_tokens(db, current_user.id)
     
     # Deactivate account
-    crud.deactivate_user(db, current_user)
+    crud.deactivate_user(db, current_user.id)
     
     return {"message": "Account deactivated successfully"}
+
+
+@router.post("/me/activate")
+async def activate_account(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Reactivate the current user's account.
+    """
+    if current_user.is_active:
+        return {"message": "Account is already active"}
+    
+    crud.activate_user(db, current_user.id)
+    
+    return {"message": "Account reactivated successfully"}
 
 
 @router.delete("/me")
@@ -91,19 +107,7 @@ async def delete_account(
     # Store email before deletion for notification
     user_email = current_user.email
     
-    # Delete all associated files from disk
-    for project in current_user.projects:
-        for doc in project.documents:
-            if os.path.exists(doc.file_path):
-                try:
-                    os.remove(doc.file_path)
-                except Exception:
-                    pass
-        
-        # Note: Vector store cleanup (Pinecone) could be added here
-        # You might want to add: cleanup_vector_store(project.id)
-    
-    # Delete user (cascades to projects, documents, tokens)
+    # Delete user (cascades to projects, documents, tokens, and deletes files)
     crud.delete_user(db, current_user)
     
     # Send confirmation email

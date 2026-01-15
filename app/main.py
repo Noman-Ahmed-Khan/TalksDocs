@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, users, projects, documents, query, health
-from app.db.session import engine, Base
+from app.db.session import engine, Base, SessionLocal
+from app.db import crud
 from app.settings import settings
 
 # Create database tables
@@ -11,6 +12,15 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
+
+@app.on_event("startup")
+async def startup_event():
+    # Cleanup deactivated users
+    db = SessionLocal()
+    try:
+        crud.cleanup_deactivated_users(db)
+    finally:
+        db.close()
 
 # Set up CORS
 app.add_middleware(

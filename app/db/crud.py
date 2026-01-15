@@ -1,9 +1,10 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 from uuid import UUID
 import secrets
+import os
 
 from app.db import models
 from app.schemas import user as user_schema
@@ -45,14 +46,22 @@ def update_user(db: Session, db_user: models.User, user_update: user_schema.User
     return db_user
 
 
-def update_user_password(db: Session, db_user: models.User, new_password: str) -> models.User:
+def update_user_password(
+    db: Session,
+    user_id: UUID,
+    new_password: str
+) -> models.User:
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    
+    if not db_user:
+        raise ValueError("User not found")
+
     db_user.hashed_password = get_password_hash(new_password)
     db_user.password_changed_at = datetime.utcnow()
-    db.add(db_user)
+
     db.commit()
     db.refresh(db_user)
     return db_user
-
 
 def verify_user_email(db: Session, db_user: models.User) -> models.User:
     db_user.is_verified = True
@@ -71,17 +80,73 @@ def update_user_email(db: Session, db_user: models.User, new_email: str) -> mode
     return db_user
 
 
-def deactivate_user(db: Session, db_user: models.User) -> models.User:
+def deactivate_user(db: Session, user_id: UUID) -> models.User:
+    db_user = (
+        db.query(models.User)
+        .filter(models.User.id == user_id)
+        .first()
+    )
+
+    if not db_user:
+        raise ValueError("User not found")
+
     db_user.is_active = False
-    db.add(db_user)
+    db_user.deactivated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+def activate_user(db: Session, user_id: UUID) -> models.User:
+    db_user = (
+        db.query(models.User)
+        .filter(models.User.id == user_id)
+        .first()
+    )
+
+    if not db_user:
+        raise ValueError("User not found")
+
+    db_user.is_active = True
+    db_user.deactivated_at = None
     db.commit()
     db.refresh(db_user)
     return db_user
 
 
 def delete_user(db: Session, db_user: models.User) -> None:
+    # Delete associated files
+    for project in db_user.projects:
+        for doc in project.documents:
+            if os.path.exists(doc.file_path):
+                try:
+                    os.remove(doc.file_path)
+                except Exception:
+                    pass
+    
     db.delete(db_user)
     db.commit()
+
+
+def cleanup_deactivated_users(db: Session) -> int:
+    """Permanently delete users deactivated for more than 30 days."""
+    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+    
+    expired_users = (
+        db.query(models.User)
+        .filter(
+            models.User.is_active == False,
+            models.User.deactivated_at <= thirty_days_ago
+        )
+        .all()
+    )
+    
+    count = 0
+    for user in expired_users:
+        delete_user(db, user)
+        count += 1
+    
+    return count
 
 
 def increment_failed_login(db: Session, db_user: models.User) -> models.User:

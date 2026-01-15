@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request, Backgrou
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from app.db import crud, models
@@ -165,12 +165,9 @@ async def login(
         crud.increment_failed_login(db, user)
         raise credentials_error
     
-    # Check if account is active
+    # Reactivate if deactivated
     if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is deactivated. Please contact support."
-        )
+        crud.activate_user(db, user.id)
     
     # Check if email is verified
     if settings.REQUIRE_EMAIL_VERIFICATION and not user.is_verified:
@@ -235,19 +232,16 @@ async def refresh_token(
         )
     
     # Check expiry
-    if db_token.expires_at < datetime.utcnow():
+    if db_token.expires_at < datetime.now(timezone.utc):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token has expired. Please log in again."
         )
     
-    # Check user status
+    # Reactivate if deactivated
     user = db_token.user
     if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is deactivated"
-        )
+        crud.activate_user(db, user.id)
     
     # Create new token pair
     new_tokens = security.create_token_pair(user.id)
@@ -337,7 +331,7 @@ async def reset_password(
         )
     
     user = token.user
-    crud.update_user_password(db, user, data.new_password)
+    crud.update_user_password(db, user.id, data.new_password)
     crud.use_password_reset_token(db, token)
     crud.revoke_all_user_tokens(db, user.id)
     
@@ -383,7 +377,7 @@ async def change_password(
             detail="New password must be different from current password"
         )
     
-    crud.update_user_password(db, current_user, data.new_password)
+    crud.update_user_password(db, current_user.id, data.new_password)
     crud.revoke_all_user_tokens(db, current_user.id)
     
     background_tasks.add_task(

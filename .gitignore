@@ -156,3 +156,6 @@ cython_debug/
 uploads/
 *.db
 *.db-journal
+
+.zencoder
+.zenflow
