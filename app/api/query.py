@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.db import crud, session, models
 from app.schemas import query as query_schema
 from app.dependencies import get_current_user
-from app.rag.qa import RAGQueryEngine
+from app.rag.query import RAGQueryEngine
 
 router = APIRouter()
 
